@@ -25,34 +25,34 @@ object MyObj {
   def apply(foo: String, bar: Long): Me = null
 }
 
-@data
-class Foo(foo: String, bar: Long) {
-  val baz: String = foo // shouldn't be in constructor
-}
-object Foo {
-  def ignore(foo: String, bar: Long): Foo = new Foo(foo, bar)
-}
+// @data
+// class Foo(foo: String, bar: Long) {
+//   val baz: String = foo // shouldn't be in constructor
+// }
+// object Foo {
+//   def ignore(foo: String, bar: Long): Foo = new Foo(foo, bar)
+// }
 
-@data
-class Baz[T](val fred: T)
+// @data
+// class Baz[T](val fred: T)
 
 @data
 class Mine(val foo: String = "foo", val bar: Long = 13)
 
-@data class Covariant[+I](item: I)
-@data class Contravariant[-I](item: I)
+// @data class Covariant[+I](item: I)
+// @data class Contravariant[-I](item: I)
 
-@data
-class LoggingFutures(a: String, b: Long) {
-  def exposed = log
-}
-@data
-object LoggingFutures {
-  def exposed = log
+// @data
+// class LoggingFutures(a: String, b: Long) {
+//   def exposed = log
+// }
+// @data
+// object LoggingFutures {
+//   def exposed = log
 
-  def a: Future[String] = null
-  def b: Future[Long] = null
-}
+//   def a: Future[String] = null
+//   def b: Future[Long] = null
+// }
 
 class DataPluginSpec extends FlatSpec with Matchers {
   "@data" should "generate companion's apply with no parameters" in {
