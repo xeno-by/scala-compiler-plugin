@@ -1,0 +1,4 @@
+<plugin>
+  <name>data</name>
+  <classname>fommil.DataPlugin</classname>
+</plugin>
