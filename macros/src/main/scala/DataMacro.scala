@@ -35,7 +35,7 @@ class DataMacro(val c: whitebox.Context) {
               clz,
               q"""
                object $term {
-                 def apply(${ps}): ${clz.name} = null
+                 def apply(...$ps): ${clz.name} = null
                }
                """
             )

@@ -4,7 +4,6 @@
 // intentionally not in the same package as the plugin
 package testing
 
-import scala.concurrent.Future
 import org.scalatest._
 
 import fommil.data
@@ -54,7 +53,7 @@ class Mine(val foo: String = "foo", val bar: Long = 13)
 //   def b: Future[Long] = null
 // }
 
-class DataPluginSpec extends FlatSpec with Matchers {
+class DataMacroSpec extends FlatSpec with Matchers {
   "@data" should "generate companion's apply with no parameters" in {
     { Me(): Me } shouldBe null
   }
@@ -67,11 +66,11 @@ class DataPluginSpec extends FlatSpec with Matchers {
     { Myself("foo", 23L): Myself } shouldBe null
   }
 
-  it should "update Foo's companion" in {
-    Foo.ignore("foo", 13L) shouldBe a[Foo]
+  // it should "update Foo's companion" in {
+  //   Foo.ignore("foo", 13L) shouldBe a[Foo]
 
-    { Foo("foo", 13L): Foo } shouldBe null
-  }
+  //   { Foo("foo", 13L): Foo } shouldBe null
+  // }
 
   it should "generate companion apply with named / default parameters" in {
     { Mine("foo"): Mine } shouldBe null
@@ -85,30 +84,16 @@ class DataPluginSpec extends FlatSpec with Matchers {
     "Irene" shouldNot compile
   }
 
-  it should "handle typed classes" in {
-    { Baz("hello"): Baz[String] } shouldBe null
-  }
+  // it should "handle typed classes" in {
+  //   { Baz("hello"): Baz[String] } shouldBe null
+  // }
 
-  it should "handle covariant types" in {
-    { Covariant(""): Covariant[String] } shouldBe null
-  }
+  // it should "handle covariant types" in {
+  //   { Covariant(""): Covariant[String] } shouldBe null
+  // }
 
-  it should "handle contravariant types" in {
-    { Contravariant(""): Contravariant[String] } shouldBe null
-  }
-
-  it should "generate a log method on the instance" in {
-    { new LoggingFutures("hello", 0).exposed } shouldBe null
-  }
-
-  it should "generate a log method on the companion" in {
-    { LoggingFutures.exposed } shouldBe null
-  }
-
-  it should "generate future methods on the companion" in {
-    { LoggingFutures.a: Future[String] } shouldBe null
-
-    { LoggingFutures.b: Future[Long] } shouldBe null
-  }
+  // it should "handle contravariant types" in {
+  //   { Contravariant(""): Contravariant[String] } shouldBe null
+  // }
 
 }
