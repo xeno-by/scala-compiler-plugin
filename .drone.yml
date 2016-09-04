@@ -1,0 +1,22 @@
+build:
+  image: ensime/ensime:v2.x-cache
+  pull: true
+  commands:
+    - if $(git grep -qE "TODO|FIXME" -- `git ls-files | grep -v .drone.yml`) ; then
+        echo "Please remove TODO or FIXME. Create an issue at GitHub instead." ;
+        exit 1 ;
+      fi
+    - git log | head -n 20
+    - host `curl -s http://httpbin.org/ip | jq -r '.origin'` || true ;
+      sbt ++$SCALA_VERSION ";createHeaders ;test:createHeaders ;test:compile ;doc";
+      if $(! git diff --exit-code --quiet) ; then
+        echo "Code formatting does not meet the project's standards:" ;
+        git --no-pager diff ;
+        exit 1 ;
+      fi
+    - sbt ++$SCALA_VERSION ";test"
+
+matrix:
+  SCALA_VERSION:
+    - 2.11.8
+    - 2.10.6
