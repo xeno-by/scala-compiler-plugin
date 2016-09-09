@@ -24,6 +24,8 @@ object Sensible {
     ivyLoggingLevel := UpdateLogging.Quiet,
     conflictManager := ConflictManager.strict,
 
+    sourcesInBase := false,
+
     scalacOptions in Compile ++= Seq(
       "-encoding", "UTF-8",
       "-target:jvm-1.7",
