@@ -4,4 +4,4 @@ package fommil
 
 import scala.annotation.StaticAnnotation
 
-class data(foo: Boolean, bar: Boolean, baz: Int) extends StaticAnnotation
+class data(interned: Boolean) extends StaticAnnotation

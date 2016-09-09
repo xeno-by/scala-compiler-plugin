@@ -3,7 +3,6 @@
 package fommil
 
 import scala.collection.breakOut
-import scala.reflect.internal.ModifierFlags
 import scala.tools.nsc._
 import scala.tools.nsc.plugins._
 import scala.tools.nsc.transform._
@@ -30,6 +29,7 @@ class DataPlugin(override val global: Global) extends Plugin {
     def transform: global.Tree => global.Tree
   }
 
+  // workaround for https://issues.scala-lang.org/browse/SI-9612
   private val parameters = new TransformingComponent(global) {
     override val phaseName: String = DataPlugin.this.name + "-params"
     import global._
@@ -37,11 +37,11 @@ class DataPlugin(override val global: Global) extends Plugin {
     def parameters(mods: global.Modifiers) = {
       mods.annotations.map {
         case ann @ Apply(Select(New(Ident(trigger)), nme.CONSTRUCTOR), _) =>
-          // NOTE: ignores all parameters, even bad ones
+          // NOTE: this simple impl ignores all parameters, even bad ones
           treeCopy.Apply(
             ann,
             ann.fun,
-            Literal(Constant(true)) :: Literal(Constant(true)) :: Literal(Constant(0)) :: Nil
+            Literal(Constant(false)) :: Nil
           )
 
         case other => other
@@ -65,113 +65,28 @@ class DataPlugin(override val global: Global) extends Plugin {
     override val phaseName: String = DataPlugin.this.name + "-companion"
     import global._
 
+    // best way to inspect a tree, just call this
+    def debug(name: String, tree: Tree): Unit = {
+      println(s"$name: ${showCode(tree)}\n${showRaw(tree)}")
+    }
+
     /** generates a zero-functionality companion for a class */
-    def genCompanion(clazz: ClassDef): ModuleDef = ModuleDef(
-      Modifiers(),
-      clazz.name.companionName,
-      Template(
-        List(Select(Ident(nme.scala_), nme.AnyRef.toTypeName)),
-        emptyValDef,
-        List(
-          DefDef(
-            Modifiers(),
-            nme.CONSTRUCTOR,
-            List(),
-            List(List()),
-            TypeTree(),
-            Block(
-              List(
-                Apply(Select(Super(This(tpnme.EMPTY), tpnme.EMPTY), nme.CONSTRUCTOR), List())
-              ),
-              Literal(Constant(()))
-            )
-          )
-        )
-      )
-    )
-
-    def genLog: DefDef = DefDef(
-      Modifiers(ModifierFlags.PRIVATE),
-      newTermName("log"),
-      Nil,
-      Nil,
-      Select(Select(Select(Ident(nme.java), newTermName("util")), newTermName("logging")), newTypeName("Logger")),
-      Literal(Constant(null))
-    )
-
-    def genProperty(name: String, tpt: Tree): DefDef = DefDef(
-      Modifiers(),
-      newTermName(name),
-      Nil,
-      Nil,
-      tpt,
-      Literal(Constant(null))
-    )
-
-    def addMethods(template: Template, methods: List[DefDef]): Template = {
-      val body = methods ::: template.body
-      treeCopy.Template(template, template.parents, template.self, body)
+    def genCompanion(clazz: ClassDef): ModuleDef = {
+      debug("genCompanion", clazz)
+      ???
     }
 
-    /** adds a log method to a class */
+    /** adds hashCode, equals and toString to a class */
     def updateClass(clazz: ClassDef): ClassDef = {
-      val log = genLog
-      log.setPos(clazz.pos)
-      val impl = addMethods(clazz.impl, log :: Nil)
-      treeCopy.ClassDef(clazz, clazz.mods, clazz.name, clazz.tparams, impl)
+      debug("updateClass", clazz)
+      ???
     }
 
-    /** adds a apply and log methods to a companion to a class */
+    /** adds apply and unapply to a companion to a class */
     def updateCompanion(clazz: ClassDef, companion: ModuleDef): ModuleDef = {
-      // not sure these can be re-used, so create fresh ones
-      //def name = newTermName(clazz.name.toString)
-      def tpe = newTypeName(clazz.name.toString)
-      def stripVariance(t: TypeDef): TypeDef = {
-        val mods = t.mods &~ ModifierFlags.COVARIANT &~ ModifierFlags.CONTRAVARIANT
-        val params = t.tparams.map(stripVariance)
-        treeCopy.TypeDef(t, mods, t.name, params, t.rhs)
-      }.duplicate
-
-      clazz.impl.body.collectFirst {
-        case d @ DefDef(_, nme.CONSTRUCTOR, _, params, _, _) => (params, d.pos)
-      } match {
-        case None => companion // traits don't have constructor parameters
-        case Some((ps, pos)) =>
-          val apply = DefDef(
-            Modifiers(),
-            newTermName("apply"),
-            clazz.tparams.map(stripVariance),
-            ps.map(_.map { v =>
-              val mods = (v.mods &~ ModifierFlags.PARAMACCESSOR)
-              treeCopy.ValDef(v, mods, v.name, v.tpt.duplicate, v.rhs)
-            }),
-            if (clazz.tparams.isEmpty) Ident(tpe)
-            else AppliedTypeTree(Ident(tpe), clazz.tparams.map { t => Ident(t.name) }),
-            // PC plugins don't need implementations
-            Literal(Constant(null))
-          )
-          apply.setPos(pos)
-
-          val log = genLog
-          log.setPos(pos)
-
-          val properties = ps.flatMap {
-            vs =>
-              vs.flatMap {
-                v =>
-                  // 1. need to take the type of v: V and turn it into Future[V]
-                  // 2. add the type parameters of the class to the method (taking only what is needed for the method)
-                  //genProperty(v.name.toString, Ident("scala.concurrent.Future[Unit]"))
-                  Nil
-              }
-          }
-
-          treeCopy.ModuleDef(
-            companion, companion.mods, companion.name, {
-            addMethods(companion.impl, apply :: log :: properties)
-          }
-          )
-      }
+      debug("updateCompanion (clazz)", clazz)
+      debug("updateCompanion (companion)", clazz)
+      ???
     }
 
     def hascaseClasses(t: PackageDef): Boolean =

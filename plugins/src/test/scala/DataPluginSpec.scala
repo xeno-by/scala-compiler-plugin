@@ -4,81 +4,85 @@
 // intentionally not in the same package as the plugin
 package testing
 
-import scala.concurrent.Future
 import org.scalatest._
+import org.scalatest.Matchers._
 
 import fommil.data
 
-@data
-class Me
+@data class Me()
 
-@data
-class Myself(val foo: String, val bar: Long)
+@data class Myself(val foo: String, val bar: Long)
 
-class Irene
+class Irene()
 
-@data
-trait Mallgan
+@data object Thingy
 
-@data
-object MyObj {
-  def apply(foo: String, bar: Long): Me = null
-}
-
-@data
-class Foo(foo: String, bar: Long) {
+@data class Foo(foo: String, bar: Long) {
   val baz: String = foo // shouldn't be in constructor
 }
 object Foo {
   def ignore(foo: String, bar: Long): Foo = new Foo(foo, bar)
 }
 
-@data
-class Baz[T](val fred: T)
+@data class Baz[T](val fred: T)
 
-@data
-class Mine(val foo: String = "foo", val bar: Long = 13)
+@data class Mine(val foo: String = "foo", val bar: Long = 13)
 
 @data class Covariant[+I](item: I)
-@data class Contravariant[-I](item: I)
 
-@data
-class LoggingFutures(a: String, b: Long) {
-  def exposed = log
-}
-@data
-object LoggingFutures {
-  def exposed = log
+class DataPluginSpec extends FlatSpec {
 
-  def a: Future[String] = null
-  def b: Future[Long] = null
-}
-
-class DataPluginSpec extends FlatSpec with Matchers {
-  "@data" should "generate companion's apply with no parameters" in {
-    { Me(): Me } shouldBe null
+  "@data" should "generate equals" in {
+    new Me() shouldBe new Me()
+    new Myself("a", 1) shouldBe new Myself("a", 1)
+    new Myself("a", 1) shouldNot be(null)
+    new Myself("a", 1) shouldNot be(new Myself("a", 2))
   }
 
-  it should "create a companion for Mallgan" in {
-    Mallgan shouldBe a[Mallgan.type]
+  it should "generate hashCode" in {
+    val me = new Me()
+    me.hashCode shouldNot be(System.identityHashCode(me))
+    new Myself("a", 1).hashCode shouldBe new Myself("a", 1).hashCode
+    new Myself("a", 1).hashCode shouldNot be(new Myself("a", 2).hashCode)
+  }
+
+  it should "generate toString" in {
+    new Me().toString shouldBe "Me()"
+    new Myself("a", 1).toString shouldBe "Myself(a,1)"
+  }
+
+  it should "generate companion's apply with no parameters" in {
+    { Me(): Me } shouldBe new Me()
   }
 
   it should "generate companion apply with parameters" in {
-    { Myself("foo", 23L): Myself } shouldBe null
+    { Myself("foo", 23L): Myself } shouldBe new Myself("foo", 23L)
+  }
+
+  it should "generate companion unapply" in {
+    { Myself("foo", 23L): Myself } should matchPattern {
+      case Myself("foo", 23L) =>
+    }
+  }
+
+  it should "generate companion unapply for an object" in {
+    { Thingy: Thingy.type } should matchPattern {
+      case Thingy =>
+    }
   }
 
   it should "update Foo's companion" in {
     Foo.ignore("foo", 13L) shouldBe a[Foo]
 
-    { Foo("foo", 13L): Foo } shouldBe null
+    { Foo("foo", 13L): Foo } shouldBe new Foo("foo", 13L)
   }
 
   it should "generate companion apply with named / default parameters" in {
-    { Mine("foo"): Mine } shouldBe null
+    { Mine("foo"): Mine } shouldBe new Mine("foo")
 
-    { Mine(foo = "foo"): Mine } shouldBe null
+    { Mine(foo = "foo"): Mine } shouldBe new Mine("foo", 13L)
 
-    { Mine(bar = 10): Mine } shouldBe null
+    { Mine(bar = 10): Mine } shouldBe new Mine("foo", 10L)
   }
 
   it should "not create anything not @data" in {
@@ -86,29 +90,11 @@ class DataPluginSpec extends FlatSpec with Matchers {
   }
 
   it should "handle typed classes" in {
-    { Baz("hello"): Baz[String] } shouldBe null
+    { Baz("hello"): Baz[String] } shouldBe new Baz("hello")
   }
 
   it should "handle covariant types" in {
-    { Covariant(""): Covariant[String] } shouldBe null
-  }
-
-  it should "handle contravariant types" in {
-    { Contravariant(""): Contravariant[String] } shouldBe null
-  }
-
-  it should "generate a log method on the instance" in {
-    { new LoggingFutures("hello", 0).exposed } shouldBe null
-  }
-
-  it should "generate a log method on the companion" in {
-    { LoggingFutures.exposed } shouldBe null
-  }
-
-  it should "generate future methods on the companion" in {
-    { LoggingFutures.a: Future[String] } shouldBe null
-
-    { LoggingFutures.b: Future[Long] } shouldBe null
+    { Covariant(""): Covariant[String] } shouldBe new Covariant("")
   }
 
 }
