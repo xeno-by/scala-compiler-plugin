@@ -14,8 +14,9 @@ import org.ensime.pcplod._
 
 class DataMacroPcSpec extends FlatSpec {
 
-  "@data" should "handle definitions of @data" in withMrPlod("classes.scala") { mr: MrPlod =>
-    mr.messages shouldBe Nil
+  "@data" should "handle definitions of @data" in withPcPlod { pc =>
+    pc.loadScala("classes.scala")
+    pc.messages shouldBe Nil
   }
 
 }
