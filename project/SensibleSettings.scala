@@ -150,12 +150,7 @@ object Sensible {
   )
 
   def testLibs(config: String = "test") = Seq(
-    "org.codehaus.janino" % "janino" % "2.7.8" % config,
-    "org.scalatest" %% "scalatest" % scalatestVersion % config,
-    "org.scalamock" %% "scalamock-scalatest-support" % "3.2.2" % config,
-    "org.scalacheck" %% "scalacheck" % "1.13.2" % config,
-    "com.typesafe.akka" %% "akka-testkit" % akkaVersion % config,
-    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion % config
+    "org.scalatest" %% "scalatest" % scalatestVersion % config
   ) ++ logback.map(_ % config)
 
   // e.g. YOURKIT_AGENT=/opt/yourkit/bin/linux-x86-64/libyjpagent.so

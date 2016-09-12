@@ -3,6 +3,7 @@
 package fommil
 
 import scala.tools.nsc._
+import scala.reflect.internal.util._
 
 /**
  * A major source of bugs in macros and compiler plugins is failure to
@@ -21,7 +22,7 @@ import scala.tools.nsc._
  *
  * http://docs.scala-lang.org/overviews/reflection/symbols-trees-types#trees
  */
-trait WithPos {
+trait WithPos { this: BackCompat =>
   val global: Global
 
   // Modifiers is an inner class, oh joy
@@ -29,6 +30,14 @@ trait WithPos {
     /** withAnnotations appears to be broken */
     def copyWithAnns(anns: List[global.Tree]): global.Modifiers =
       t.copy(annotations = anns).setPositions(t.positions)
+  }
+
+  implicit class RichTree[T <: global.Tree](t: T) {
+    /** when generating a tree, use this to generate positions all the way down. */
+    def withAllPos(pos: Position): T = {
+      t.foreach(_.setPos(new TransparentPosition(pos.source, pos.startOrCursor, pos.endOrCursor, pos.endOrCursor)))
+      t
+    }
   }
 }
 

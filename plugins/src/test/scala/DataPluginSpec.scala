@@ -7,6 +7,9 @@ package testing
 import org.scalatest._
 import org.scalatest.Matchers._
 
+import org.slf4j.LoggerFactory
+import org.slf4j.bridge.SLF4JBridgeHandler
+
 import fommil.data
 
 @data class Me()
@@ -30,7 +33,13 @@ object Foo {
 
 @data class Covariant[+I](item: I)
 
-class DataPluginSpec extends FlatSpec {
+trait Logging {
+  SLF4JBridgeHandler.removeHandlersForRootLogger()
+  SLF4JBridgeHandler.install()
+  val log = LoggerFactory.getLogger(this.getClass)
+}
+
+class DataPluginSpec extends FlatSpec with Logging {
 
   "@data" should "generate equals" in {
     new Me() shouldBe new Me()

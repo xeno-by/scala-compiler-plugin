@@ -11,7 +11,8 @@ class DataPlugin(override val global: Global) extends Plugin {
   override val name: String = "data"
   override val description: String = s"Generates code when using an annotation named '$name'"
 
-  abstract class TransformingComponent(override val global: Global) extends PluginComponent with TypingTransformers with WithPos with IsIde {
+  abstract class TransformingComponent(override val global: Global) extends PluginComponent
+    with TypingTransformers with WithPos with IsIde with BackCompat {
     val trigger = global.newTypeName(DataPlugin.this.name)
 
     override def newPhase(prev: Phase): Phase = new StdPhase(prev) {
@@ -67,26 +68,27 @@ class DataPlugin(override val global: Global) extends Plugin {
 
     // best way to inspect a tree, just call this
     def debug(name: String, tree: Tree): Unit = {
-      println(s"$name: ${showCode(tree)}\n${showRaw(tree)}")
+      global.reporter.warning(tree.pos, s"$name: ${showCode(tree)}\n${showRaw(tree)}")
     }
 
     /** generates a zero-functionality companion for a class */
     def genCompanion(clazz: ClassDef): ModuleDef = {
       debug("genCompanion", clazz)
-      ???
+      val name = TermName(clazz.name.toString)
+      q"object ${name}"
     }
 
     /** adds hashCode, equals and toString to a class */
     def updateClass(clazz: ClassDef): ClassDef = {
       debug("updateClass", clazz)
-      ???
+      clazz
     }
 
     /** adds apply and unapply to a companion to a class */
     def updateCompanion(clazz: ClassDef, companion: ModuleDef): ModuleDef = {
       debug("updateCompanion (clazz)", clazz)
       debug("updateCompanion (companion)", clazz)
-      ???
+      companion
     }
 
     def hascaseClasses(t: PackageDef): Boolean =
