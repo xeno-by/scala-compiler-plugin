@@ -30,7 +30,7 @@ class Mine(val foo: String = "foo", val bar: Long = 13)
 
 class DataMacroSpec extends FlatSpec {
   "@data" should "generate companion's apply with no parameters" in {
-    { Me(): Me } shouldBe null
+    { Me(): Me } shouldNot be(null)
   }
 
   it should "create a companion for Mallgan" in {
@@ -38,15 +38,15 @@ class DataMacroSpec extends FlatSpec {
   }
 
   it should "generate companion apply with parameters" in {
-    { Myself("foo", 23L): Myself } shouldBe null
+    { Myself("foo", 23L): Myself } shouldNot be(null)
   }
 
   it should "generate companion apply with named / default parameters" in {
-    { Mine("foo"): Mine } shouldBe null
+    { Mine("foo"): Mine } shouldNot be(null)
 
-    { Mine(foo = "foo"): Mine } shouldBe null
+    { Mine(foo = "foo"): Mine } shouldNot be(null)
 
-    { Mine(bar = 10): Mine } shouldBe null
+    { Mine(bar = 10): Mine } shouldNot be(null)
   }
 
   it should "not create anything not @data" in {
